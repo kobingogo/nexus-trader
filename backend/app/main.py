@@ -27,8 +27,11 @@ app.include_router(market.router, prefix="/api/v1/market", tags=["Market Data"])
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI Services"])
 app.include_router(anomaly.router, prefix="/api/v1/anomaly", tags=["Anomaly Detection"])
 app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"])
+app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"])
 app.include_router(watchlist.router, prefix="/api/v1/watchlist", tags=["Watchlist"])
 app.include_router(llm.router, prefix="/api/v1/llm", tags=["LLM Management"])
+from app.routers import market_sentiment
+app.include_router(market_sentiment.router, prefix="/api/v1/market", tags=["Market Sentiment"])
 
 @app.get("/")
 def read_root():
