@@ -45,3 +45,62 @@ INFO:     127.0.0.1:61666 - "GET /api/v1/market/heatmap HTTP/1.1" 200 OK
 INFO:     127.0.0.1:61674 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
 INFO:     127.0.0.1:61759 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
 INFO:     127.0.0.1:61669 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62025 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62023 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62152 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62142 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62144 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62149 - "GET /api/v1/market/heatmap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62151 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62146 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62152 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62413 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62411 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "OPTIONS /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62486 - "POST /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62635 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62635 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62633 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62629 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+  0%|          | 0/2 [00:00<?, ?it/s]INFO:     127.0.0.1:62627 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62625 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+ 50%|█████     | 1/2 [00:00<00:00,  3.33it/s]                                               0%|          | 0/2 [00:00<?, ?it/s] 50%|█████     | 1/2 [00:00<00:00,  3.53it/s]100%|██████████| 2/2 [00:00<00:00,  3.90it/s]                                             INFO:     127.0.0.1:62632 - "GET /api/v1/market/heatmap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62921 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62915 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+EastMoney concept fetch failed: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+  0%|          | 0/39 [00:00<?, ?it/s]  5%|▌         | 2/39 [00:00<00:11,  3.20it/s]  8%|▊         | 3/39 [00:02<00:40,  1.12s/it] 10%|█         | 4/39 [00:04<00:52,  1.49s/it] 18%|█▊        | 7/39 [00:05<00:19,  1.67it/s] 26%|██▌       | 10/39 [00:05<00:09,  2.96it/s] 33%|███▎      | 13/39 [00:05<00:05,  4.48it/s] 38%|███▊      | 15/39 [00:05<00:04,  5.64it/s] 46%|████▌     | 18/39 [00:05<00:02,  7.56it/s] 51%|█████▏    | 20/39 [00:05<00:02,  8.82it/s] 59%|█████▉    | 23/39 [00:05<00:01, 11.64it/s] 67%|██████▋   | 26/39 [00:06<00:00, 14.31it/s] 74%|███████▍  | 29/39 [00:06<00:00, 16.71it/s] 82%|████████▏ | 32/39 [00:06<00:00, 18.43it/s] 90%|████████▉ | 35/39 [00:06<00:00, 20.37it/s] 97%|█████████▋| 38/39 [00:06<00:00, 22.00it/s]                                               EastMoney 'AI应用' fetch failed: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+INFO:     127.0.0.1:62875 - "GET /api/v1/logic/analyze?q=AI HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63379 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63385 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63383 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63381 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63700 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63694 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63826 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63818 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63826 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63820 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63824 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
+  0%|          | 0/2 [00:00<?, ?it/s]INFO:     127.0.0.1:63817 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+ 50%|█████     | 1/2 [00:00<00:00,  2.11it/s]                                               0%|          | 0/2 [00:00<?, ?it/s]                                     INFO:     127.0.0.1:63822 - "GET /api/v1/market/heatmap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63935 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63935 - "OPTIONS /api/v1/watchlist/002340 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63935 - "DELETE /api/v1/watchlist/002340 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63935 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63996 - "OPTIONS /api/v1/watchlist/300364/tags HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63996 - "PUT /api/v1/watchlist/300364/tags HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64098 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64092 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/services/review_service.py'. Reloading...
+./start.sh: line 39: 75986 Killed: 9               python -m app.main  (wd: ~/nexus_trader/backend)
+Stopping NEXUS Trader...
+/opt/homebrew/Cellar/python@3.14/3.14.3_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-e440idc_'}
+  warnings.warn(

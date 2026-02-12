@@ -6,6 +6,23 @@ import time
 import random
 from functools import lru_cache
 from tenacity import retry, stop_after_attempt, wait_fixed
+import signal
+from contextlib import contextmanager
+
+# Timeout helper using signal (Unix only)
+@contextmanager
+def timeout(seconds):
+    def timeout_handler(signum, frame):
+        raise TimeoutError(f"Operation timed out after {seconds} seconds")
+    
+    # Set the signal handler and alarm
+    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)  # Disable alarm
+        signal.signal(signal.SIGALRM, old_handler)
 
 # Simple in-memory cache with expiry
 class Cache:
@@ -42,10 +59,11 @@ class MarketDataService:
         ]
 
     @staticmethod
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_heatmap_data():
         # Source: Tonghuashun (Faster/Alternative)
-        return ak.stock_board_industry_summary_ths()
+        with timeout(10):  # 10 second timeout
+            return ak.stock_board_industry_summary_ths()
 
     _stock_codes_map = {}
 
@@ -68,10 +86,11 @@ class MarketDataService:
         return MarketDataService._stock_codes_map.get(name, "")
 
     @staticmethod
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_leaders_data():
         # Source: EastMoney Popularity Rank (Recent Popular)
-        return ak.stock_hot_rank_em()
+        with timeout(10):  # 10 second timeout
+            return ak.stock_hot_rank_em()
 
     @staticmethod
     def get_sector_heatmap() -> List[Dict[str, Any]]:
@@ -99,7 +118,7 @@ class MarketDataService:
                     continue # Skip rows with bad data
             
             result.sort(key=lambda x: x['change_pct'], reverse=True)
-            Cache.set("heatmap", result, ttl=60)
+            Cache.set("heatmap", result, ttl=300)  # Extended to 5 minutes
             return result
         except Exception as e:
             print(f"Error fetching heatmap: {e}")
@@ -149,7 +168,7 @@ class MarketDataService:
             # Limit to top 30 filtered
             result = result[:30]
             
-            Cache.set("leaders", result, ttl=60) # Cache for 1 min
+            Cache.set("leaders", result, ttl=300)  # Extended to 5 minutes
             return result
         except Exception as e:
             print(f"Error fetching leaders: {e}")
@@ -158,17 +177,19 @@ class MarketDataService:
             return mock_data
 
     @staticmethod
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_market_activity():
         # Source: Legu Market Activity (Up/Down/LimitUp/LimitDown)
-        return ak.stock_market_activity_legu()
+        with timeout(10):  # 10 second timeout
+            return ak.stock_market_activity_legu()
 
     @staticmethod
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
+    @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_economic_calendar():
         # Source: Baidu Economic Calendar
         today = time.strftime("%Y%m%d")
-        return ak.news_economic_baidu(date=today)
+        with timeout(10):  # 10 second timeout
+            return ak.news_economic_baidu(date=today)
 
     @staticmethod
     def get_market_sentiment() -> Dict[str, Any]:
@@ -195,7 +216,7 @@ class MarketDataService:
                 "temperature": activity, # Use activity as temperature for now
                 "ts": data.get("统计日期", "")
             }
-            Cache.set("sentiment", result, ttl=60)
+            Cache.set("sentiment", result, ttl=300)  # Extended to 5 minutes
             return result
         except Exception as e:
             print(f"Error fetching sentiment: {e}")
