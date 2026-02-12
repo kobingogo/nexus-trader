@@ -1,0 +1,27 @@
+{
+  "providers": [
+    {
+      "id": "44305eb9",
+      "name": "Nvidia Build",
+      "type": "nvidia",
+      "auth_type": "api_key",
+      "api_key": "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",
+      "base_url": "https://integrate.api.nvidia.com/v1",
+      "models": [
+        "moonshotai/kimi-k2.5",
+        "deepseek-ai/deepseek-r1",
+        "deepseek-ai/deepseek-v3.2",
+        "qwen/qwen3-next",
+        "z-ai/glm4.7",
+        "nvidia/nemotron-3-nano-30b-a3b",
+        "meta/llama-3.1-405b-instruct",
+        "mistralai/devstral-2-123b-instruct-2512"
+      ],
+      "enabled": true
+    }
+  ],
+  "active_model": {
+    "provider_id": "44305eb9",
+    "model_name": "moonshotai/kimi-k2.5"
+  }
+}

@@ -1,92 +1,168 @@
-import akshare as ak
+import os
 import time
+import re
+import requests
 from typing import List, Dict, Any
-from datetime import datetime, timedelta
 from tenacity import retry, stop_after_attempt, wait_fixed
 from app.services.market_data import Cache
+
+# Session with no system proxy for direct connections
+_session = requests.Session()
+_session.trust_env = False
+_session.headers.update({
+    "Referer": "https://finance.sina.com.cn",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+})
 
 
 class WatchlistQuoteService:
     """
-    Service to fetch real-time quotes and recent history for watchlist stocks.
-    Uses stock_zh_a_hist (日K线) which is fast and reliable.
+    Service to fetch real-time quotes for watchlist stocks.
+    Uses Sina Finance API which is fast and reliable.
+    
+    Sina API returns: name, open, prev_close, price, high, low, bid, ask,
+                      volume, amount, ... and more fields.
     """
 
     @staticmethod
+    def _code_to_sina(code: str) -> str:
+        """Convert stock code to Sina format (sz/sh prefix)."""
+        if code.startswith(("60", "68", "11")):
+            return f"sh{code}"
+        else:
+            return f"sz{code}"
+
+    @staticmethod
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
-    def _fetch_stock_hist(code: str, days: int = 10) -> Dict[str, Any]:
-        """Fetch recent daily K-line data for a single stock."""
-        end_date = datetime.now().strftime("%Y%m%d")
-        start_date = (datetime.now() - timedelta(days=days + 15)).strftime("%Y%m%d")  # extra buffer for weekends
+    def _fetch_batch_quotes(codes: List[str]) -> Dict[str, Dict[str, Any]]:
+        """
+        Fetch real-time quotes from Sina Finance for multiple stocks at once.
+        This is very fast — single HTTP request for all codes.
+        """
+        sina_codes = [WatchlistQuoteService._code_to_sina(c) for c in codes]
+        url = f"https://hq.sinajs.cn/list={','.join(sina_codes)}"
 
-        df = ak.stock_zh_a_hist(
-            symbol=code,
-            period="daily",
-            start_date=start_date,
-            end_date=end_date,
-            adjust="qfq"
-        )
+        r = _session.get(url, timeout=10)
+        r.encoding = "gbk"
 
-        if df.empty:
-            return None
+        results = {}
+        for line in r.text.strip().split("\n"):
+            if not line.strip():
+                continue
+            m = re.match(r'var hq_str_(\w+)="(.*)";', line)
+            if not m:
+                continue
 
-        # Get the latest row (today or last trading day)
-        latest = df.iloc[-1]
-        prev = df.iloc[-2] if len(df) > 1 else latest
+            sina_code = m.group(1)
+            raw_code = sina_code[2:]  # Remove sh/sz prefix
+            fields = m.group(2).split(",")
 
-        # Build sparkline data (last N days close prices)
-        sparkline = df["收盘"].tolist()[-days:]
+            if len(fields) < 32:
+                continue
 
-        return {
-            "code": code,
-            "name": "",  # Will be filled by caller
-            "price": float(latest["收盘"]),
-            "open": float(latest["开盘"]),
-            "high": float(latest["最高"]),
-            "low": float(latest["最低"]),
-            "prev_close": float(prev["收盘"]),
-            "change_pct": float(latest["涨跌幅"]),
-            "change_amt": float(latest["涨跌额"]),
-            "volume": int(latest["成交量"]),
-            "amount": float(latest["成交额"]),
-            "turnover": float(latest["换手率"]),
-            "amplitude": float(latest["振幅"]),
-            "sparkline": sparkline,
-            "date": str(latest["日期"]),
-        }
+            # Sina fields:
+            # 0:名称, 1:今开, 2:昨收, 3:当前价, 4:最高, 5:最低
+            # 6:竞买价, 7:竞卖价, 8:成交量(股), 9:成交额(元)
+            # 10-19: 买1-5 量 价
+            # 20-29: 卖1-5 量 价
+            # 30:日期, 31:时间
+
+            try:
+                name = fields[0]
+                price = float(fields[3])
+                prev_close = float(fields[2])
+                open_price = float(fields[1])
+                high = float(fields[4])
+                low = float(fields[5])
+                volume = int(float(fields[8]))
+                amount = float(fields[9])
+
+                change_amt = round(price - prev_close, 3)
+                change_pct = round((change_amt / prev_close) * 100, 2) if prev_close > 0 else 0
+                amplitude = round(((high - low) / prev_close) * 100, 2) if prev_close > 0 else 0
+                turnover = 0  # Not available from Sina directly
+
+                results[raw_code] = {
+                    "code": raw_code,
+                    "name": name,
+                    "price": price,
+                    "open": open_price,
+                    "prev_close": prev_close,
+                    "high": high,
+                    "low": low,
+                    "change_pct": change_pct,
+                    "change_amt": change_amt,
+                    "volume": volume,
+                    "amount": amount,
+                    "turnover": turnover,
+                    "amplitude": amplitude,
+                    "date": fields[30] if len(fields) > 30 else "",
+                    "time": fields[31] if len(fields) > 31 else "",
+                }
+            except (ValueError, IndexError):
+                continue
+
+        return results
 
     @staticmethod
     def get_quotes(watchlist: List[Dict[str, str]]) -> List[Dict[str, Any]]:
         """
-        Get quotes for all watchlist stocks.
-        Uses cache to avoid hammering the API.
+        Get quotes for all watchlist stocks in a single batch request.
         """
-        quotes = []
+        if not watchlist:
+            return []
 
+        codes = [s["code"] for s in watchlist]
+        code_to_stock = {s["code"]: s for s in watchlist}
+
+        # Check cache first
+        all_cached = True
+        cached_quotes = []
+        for code in codes:
+            cached = Cache.get(f"quote_{code}")
+            if cached:
+                # Update name/tags from watchlist (may have changed)
+                stock = code_to_stock[code]
+                cached["name"] = stock.get("name", cached.get("name", ""))
+                cached["tags"] = stock.get("tags", [])
+                cached_quotes.append(cached)
+            else:
+                all_cached = False
+
+        if all_cached:
+            return cached_quotes
+
+        # Fetch fresh data
+        try:
+            quote_map = WatchlistQuoteService._fetch_batch_quotes(codes)
+        except Exception as e:
+            print(f"Error fetching batch quotes: {e}")
+            # Return fallback entries
+            return [{
+                "code": s["code"],
+                "name": s.get("name", ""),
+                "tags": s.get("tags", []),
+                "price": 0,
+                "change_pct": 0,
+                "sparkline": [],
+                "error": str(e),
+            } for s in watchlist]
+
+        quotes = []
         for stock in watchlist:
             code = stock["code"]
             name = stock.get("name", "")
             tags = stock.get("tags", [])
 
-            cache_key = f"quote_{code}"
-            cached = Cache.get(cache_key)
-
-            if cached:
-                cached["name"] = name
-                cached["tags"] = tags
-                quotes.append(cached)
-                continue
-
-            try:
-                quote = WatchlistQuoteService._fetch_stock_hist(code, days=10)
-                if quote:
-                    quote["name"] = name
-                    quote["tags"] = tags
-                    Cache.set(cache_key, quote, ttl=30)  # Cache 30s
-                    quotes.append(quote)
-            except Exception as e:
-                print(f"Error fetching quote for {code}: {e}")
-                # Append a fallback entry
+            quote = quote_map.get(code)
+            if quote:
+                quote["tags"] = tags
+                if name:
+                    quote["name"] = name  # Use saved name if available
+                quote["sparkline"] = []  # Sparkline will be added later if needed
+                Cache.set(f"quote_{code}", quote, ttl=15)  # Cache 15s for real-time feel
+                quotes.append(quote)
+            else:
                 quotes.append({
                     "code": code,
                     "name": name,
@@ -94,16 +170,14 @@ class WatchlistQuoteService:
                     "price": 0,
                     "change_pct": 0,
                     "sparkline": [],
-                    "error": str(e),
+                    "error": "No data",
                 })
 
         return quotes
 
     @staticmethod
     def get_portfolio_summary(quotes: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Calculate portfolio-level summary stats from quotes.
-        """
+        """Calculate portfolio-level summary stats from quotes."""
         valid_quotes = [q for q in quotes if q.get("price", 0) > 0]
 
         if not valid_quotes:

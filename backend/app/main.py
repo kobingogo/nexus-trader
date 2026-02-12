@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import market, ai, anomaly, review, watchlist
+from app.routers import market, ai, anomaly, review, watchlist, llm
 
 app = FastAPI(
     title="NEXUS Trader API",
@@ -28,6 +28,7 @@ app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI Services"])
 app.include_router(anomaly.router, prefix="/api/v1/anomaly", tags=["Anomaly Detection"])
 app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"])
 app.include_router(watchlist.router, prefix="/api/v1/watchlist", tags=["Watchlist"])
+app.include_router(llm.router, prefix="/api/v1/llm", tags=["LLM Management"])
 
 @app.get("/")
 def read_root():

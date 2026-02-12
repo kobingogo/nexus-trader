@@ -1,20 +1,28 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from app.services.watchlist_service import WatchlistService
 from app.services.watchlist_quotes import WatchlistQuoteService
+from app.services.stock_search import search_stocks, get_stock_name
 
 router = APIRouter()
 
 
 class AddStockRequest(BaseModel):
     code: str
-    name: str
+    name: Optional[str] = None
     tags: Optional[List[str]] = None
 
 
 class UpdateTagsRequest(BaseModel):
     tags: List[str]
+
+
+@router.get("/search")
+async def search_stock(q: str = Query(..., min_length=1, description="Search query (code or name)")):
+    """Fuzzy search stocks by code or name."""
+    results = search_stocks(q, limit=10)
+    return {"results": results}
 
 
 @router.get("")
@@ -25,7 +33,12 @@ async def get_watchlist():
 
 @router.post("")
 async def add_stock(request: AddStockRequest):
-    result = WatchlistService.add_stock(request.code, request.name, request.tags)
+    code = request.code.strip().zfill(6)
+    name = request.name
+    if not name:
+        # Auto-resolve name from code
+        name = get_stock_name(code) or code
+    result = WatchlistService.add_stock(code, name.strip(), request.tags)
     return result
 
 
