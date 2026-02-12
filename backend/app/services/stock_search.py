@@ -161,3 +161,48 @@ def get_stock_history_sina(code: str, days: int = 30) -> str:
 
     except Exception as e:
         return f"获取历史数据失败: {str(e)}"
+
+
+def get_stock_history_df(code: str, days: int = 60) -> pd.DataFrame:
+    """
+    Get recent stock history from Sina Finance as DataFrame.
+    """
+    import pandas as pd
+    
+    # Determine market prefix
+    if code.startswith(("60", "68", "11")):
+        sina_code = f"sh{code}"
+    else:
+        sina_code = f"sz{code}"
+
+    try:
+        url = f"https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData"
+        params = {
+            "symbol": sina_code,
+            "scale": "240",  # daily
+            "ma": "no",
+            "datalen": str(min(days, 80)), # fetch more for MA/MACD calculation
+        }
+        r = _session.get(url, params=params, timeout=10)
+
+        if r.status_code != 200 or not r.text.strip():
+            return pd.DataFrame()
+
+        import json
+        data = json.loads(r.text)
+        
+        if not data:
+            return pd.DataFrame()
+            
+        df = pd.DataFrame(data)
+        # Rename columns to match StockAnalysisService expectation: day, open, high, low, close, volume
+        # Sina returns: day, open, high, low, close, volume
+        # Ensure numeric
+        for col in ['open', 'high', 'low', 'close', 'volume']:
+            df[col] = pd.to_numeric(df[col])
+            
+        return df
+        
+    except Exception as e:
+        print(f"Error fetching history df: {e}")
+        return pd.DataFrame()
