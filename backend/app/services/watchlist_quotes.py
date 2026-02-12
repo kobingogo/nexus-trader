@@ -137,16 +137,22 @@ class WatchlistQuoteService:
             quote_map = WatchlistQuoteService._fetch_batch_quotes(codes)
         except Exception as e:
             print(f"Error fetching batch quotes: {e}")
-            # Return fallback entries
-            return [{
-                "code": s["code"],
-                "name": s.get("name", ""),
-                "tags": s.get("tags", []),
-                "price": 0,
-                "change_pct": 0,
-                "sparkline": [],
-                "error": str(e),
-            } for s in watchlist]
+            # Return fallback entries and cache them briefly
+            fallback = []
+            for s in watchlist:
+                fallback_item = {
+                    "code": s["code"],
+                    "name": s.get("name", ""),
+                    "tags": s.get("tags", []),
+                    "price": 0,
+                    "change_pct": 0,
+                    "sparkline": [],
+                    "error": str(e),
+                }
+                fallback.append(fallback_item)
+                # Cache error state for 10s to prevent rapid retries
+                Cache.set(f"quote_{s['code']}", fallback_item, ttl=10)
+            return fallback
 
         quotes = []
         for stock in watchlist:

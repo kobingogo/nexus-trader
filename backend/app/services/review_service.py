@@ -2,6 +2,7 @@ import os
 import time
 from typing import Dict, Any
 from openai import OpenAI
+from datetime import datetime
 from app.services.market_data import MarketDataService
 
 
@@ -9,9 +10,9 @@ class DailyReviewService:
     @staticmethod
     def generate_review() -> Dict[str, Any]:
         """
-        Generate a daily market review report.
-        Aggregates sentiment + heatmap + leaders data, then uses LLM 
-        (or template fallback) to produce a Markdown report.
+        Generate a daily market review report with multi-perspective analysis.
+        Perspectives: Institutional, Quantitative, Hot Money.
+        Final Summary: Senior Investor.
         """
         try:
             # 1. Gather data
@@ -19,11 +20,11 @@ class DailyReviewService:
             heatmap = MarketDataService.get_sector_heatmap()
             leaders = MarketDataService.get_leader_stocks()
 
-            # Top 5 sectors
+            # Top sectors
             top_sectors = heatmap[:5] if heatmap else []
             bottom_sectors = sorted(heatmap, key=lambda x: x.get("change_pct", 0))[:3] if heatmap else []
             
-            # Top 5 leaders
+            # Leaders
             top_leaders = leaders[:5] if leaders else []
 
             # 2. Build context for LLM
@@ -38,7 +39,8 @@ class DailyReviewService:
                 "### 最强板块 TOP5:",
             ]
             for s in top_sectors:
-                context_lines.append(f"- {s['name']}: {s['change_pct']:+.2f}% (领涨: {s.get('leader_name', 'N/A')})")
+                leader_info = f"(领涨: {s.get('leader_name', 'N/A')})" if s.get('leader_name') else ""
+                context_lines.append(f"- {s['name']}: {s['change_pct']:+.2f}% {leader_info}")
             
             context_lines.append("")
             context_lines.append("### 最弱板块 TOP3:")
@@ -52,49 +54,143 @@ class DailyReviewService:
 
             context = "\n".join(context_lines)
 
-            # 3. Try LLM generation
-            api_key = os.getenv("OPENAI_API_KEY")
-            base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+            # 3. Get LLM Client
+            from app.services.llm_provider import LLMProviderManager
+            manager = LLMProviderManager()
+            client, model_name = manager.get_client()
 
-            if api_key:
-                prompt = f"""
-角色：资深A股复盘分析师 (NEXUS AI)
-任务：根据以下今日市场数据，生成一份简洁精炼的每日复盘报告 (Markdown格式)。
+            if client and model_name:
+                # Define personas and prompts
+                perspectives = [
+                    {
+                        "role": "Institutional",
+                        "title": "🏛️ 机构视角 (Institutional)",
+                        "prompt": """
+角色：顶级公募基金经理
+任务：分析市场基本面和宏观逻辑。
+关注点：
+1. 市场成交量与流动性变化。
+2. 主流板块（如科技、新能源、消费、金融）的趋势性机会。
+3. 风格切换（大盘vs小盘，价值vs成长）。
+输出风格：专业、理性、宏观视野。
+                        """
+                    },
+                    {
+                        "role": "Quantitative",
+                        "title": "📊 量化视角 (Quantitative)",
+                        "prompt": """
+角色：资深量化交易员
+任务：分析市场数据特征。
+关注点：
+1. 涨跌家数比、涨停炸板率、赚钱效应数据。
+2. 市场广度与情绪指标（过热/冰点）。
+3. 资金流向异常点。
+输出风格：客观、数据驱动、注重概率。
+                        """
+                    },
+                    {
+                        "role": "HotMoney",
+                        "title": "⚡ 游资视角 (Hot Money)",
+                        "prompt": """
+角色：顶级游资大佬
+任务：分析短线情绪和题材博弈。
+关注点：
+1. 连板高度、断板反馈、核按钮情况。
+2. 题材持续性与龙头的带动作用。
+3. 情绪周期（启动、发酵、高潮、退潮）。
+输出风格：犀利、直接、且富有激情（使用“核按钮”、“大面”、“弱转强”等术语）。
+                        """
+                    }
+                ]
 
+                full_report_parts = [f"# 📈 NEXUS 深度复盘 ({datetime.now().strftime('%Y-%m-%d')})\n"]
+                
+                # We will collect the partial outputs to feed into the summary
+                perspective_outputs = []
+
+                # Generate perspectives sequentially
+                for p in perspectives:
+                    user_prompt = f"""
+{p['prompt']}
+
+【市场数据】
 {context}
 
-请生成报告，包含以下章节：
-1. 📊 今日总结 (一句话概括今日行情特征)
-2. 🔥 最强方向 (哪些板块最强，为什么)
-3. ⚠️ 亏钱效应 (哪里是亏钱重灾区)
-4. 🎯 明日策略 (NEXUS 建议：进攻/防守/观望 + 理由)
-5. 💡 关键个股提示 (值得关注的龙头)
-
-要求：语言简洁有力，像一个老师傅在复盘，不要废话。
+请输出你的分析段落（Markdown格式，不含标题，300字以内）。
 """
-                client = OpenAI(api_key=api_key, base_url=base_url)
-                response = client.chat.completions.create(
-                    model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-                    messages=[
-                        {"role": "system", "content": "你是 NEXUS AI，一个专业的A股复盘分析师。输出 Markdown 格式。"},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7,
-                )
-                report = response.choices[0].message.content
+                    try:
+                        resp = client.chat.completions.create(
+                            model=model_name,
+                            messages=[
+                                {"role": "system", "content": "你是 NEXUS AI 交易系统的分身。"},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            temperature=0.7,
+                        )
+                        content = resp.choices[0].message.content.strip()
+                        perspective_outputs.append(f"### {p['title']}\n\n{content}")
+                        full_report_parts.append(f"## {p['title']}\n\n{content}\n")
+                    except Exception as e:
+                        print(f"Error generating {p['role']} view: {e}")
+                        perspective_outputs.append(f"### {p['title']}\n\n(分析生成失败)")
+
+                # Generate Final Summary
+                combined_views = "\n\n".join(perspective_outputs)
+                summary_prompt = f"""
+角色：NEXUS 首席投资官 (CIO)
+任务：汇总以上三方观点，给出最终市场定调和策略。
+
+【三方观点】
+{combined_views}
+
+请输出：
+1. 🎯 **市场定调**：一句话定义当前阶段（如：牛市初期/震荡磨底/情绪退潮）。
+2. 🛡️ **核心策略**：具体的仓位建议（满仓/半仓/空仓）和操作方向。
+3. ⭐ **明日重点**：最值得关注的一个方向或风险点。
+
+风格：权威、果断、高屋建瓴。
+"""
+                try:
+                    summary_resp = client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": "你是 NEXUS AI 首席投资官。"},
+                            {"role": "user", "content": summary_prompt}
+                        ],
+                        temperature=0.6,
+                    )
+                    summary_content = summary_resp.choices[0].message.content.strip()
+                    # Insert summary at the beginning (after title)
+                    full_report_parts.insert(1, f"\n{summary_content}\n\n---\n")
+                except Exception as e:
+                    print(f"Error generating summary: {e}")
+
+                final_report = "\n".join(full_report_parts)
+                
+                # Append disclaimer
+                final_report += "\n\n---\n*NEXUS AI · 深度复盘系统*"
+
+                return {
+                    "report": final_report,
+                    "generated_at": int(time.time()),
+                    "data_source": "ai_ensemble",
+                }
+
             else:
                 # Fallback: template-based report
                 report = DailyReviewService._generate_template_report(
                     sentiment, top_sectors, bottom_sectors, top_leaders
                 )
+                return {
+                    "report": report,
+                    "generated_at": int(time.time()),
+                    "data_source": "template",
+                }
 
-            return {
-                "report": report,
-                "generated_at": int(time.time()),
-                "data_source": "llm" if api_key else "template",
-            }
         except Exception as e:
             print(f"Error generating daily review: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "report": f"# ⚠️ 复盘生成失败\n\n错误: {str(e)}",
                 "generated_at": int(time.time()),

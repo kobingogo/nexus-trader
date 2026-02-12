@@ -54,6 +54,8 @@ async def update_tags(code: str, request: UpdateTagsRequest):
     return result
 
 
+import asyncio
+
 @router.get("/quotes")
 async def get_watchlist_quotes():
     """Get real-time quotes and portfolio summary for all watchlist stocks."""
@@ -73,6 +75,6 @@ async def get_watchlist_quotes():
             }
         }
 
-    quotes = WatchlistQuoteService.get_quotes(watchlist)
-    summary = WatchlistQuoteService.get_portfolio_summary(quotes)
+    quotes = await asyncio.to_thread(WatchlistQuoteService.get_quotes, watchlist)
+    summary = await asyncio.to_thread(WatchlistQuoteService.get_portfolio_summary, quotes)
     return {"quotes": quotes, "summary": summary}

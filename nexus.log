@@ -1,0 +1,47 @@
+🚀 Starting NEXUS Trader...
+Starting Backend...
+Starting Frontend...
+✅ NEXUS Trader is running!
+Backend: http://localhost:8000
+Frontend: http://localhost:3000
+Press Ctrl+C to stop.
+
+> frontend@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 55934, using available port 3001 instead.
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.130.123:3001
+
+✓ Starting...
+INFO:     Will watch for changes in these directories: ['/Users/bingo/nexus_trader/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [75986] using StatReload
+⨯ Unable to acquire lock at /Users/bingo/nexus_trader/frontend/.next/dev/lock, is another instance of next dev running?
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+INFO:     Started server process [76026]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[?25h
+INFO:     127.0.0.1:61651 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61676 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61676 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61674 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61671 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+  0%|          | 0/2 [00:00<?, ?it/s]INFO:     127.0.0.1:61669 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61666 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+                                       0%|          | 0/2 [00:00<?, ?it/s]                                     INFO:     127.0.0.1:61676 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61759 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61674 - "GET /api/v1/market/heatmap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61666 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61669 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61676 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61671 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61759 - "GET /api/v1/watchlist HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61676 - "GET /api/v1/market/sentiment HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61671 - "GET /api/v1/market/sentiment-radar HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61666 - "GET /api/v1/market/heatmap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61674 - "GET /api/v1/market/leaders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61759 - "GET /api/v1/anomaly/scan?filter=all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61669 - "GET /api/v1/watchlist/quotes HTTP/1.1" 200 OK

@@ -7,8 +7,11 @@ from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
+from app.utils.cache import ttl_cache
+
 class MarketSentimentService:
     @staticmethod
+    @ttl_cache(ttl=60) # Cache for 1 minute
     def get_market_sentiment() -> Dict[str, Any]:
         """
         Fetch and calculate market sentiment metrics:

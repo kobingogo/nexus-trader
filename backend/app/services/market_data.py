@@ -103,7 +103,9 @@ class MarketDataService:
             return result
         except Exception as e:
             print(f"Error fetching heatmap: {e}")
-            return MarketDataService._get_mock_heatmap()
+            mock_data = MarketDataService._get_mock_heatmap()
+            Cache.set("heatmap", mock_data, ttl=30) # Cache mock data for 30s
+            return mock_data
 
     @staticmethod
     def get_leader_stocks() -> List[Dict[str, Any]]:
@@ -151,7 +153,9 @@ class MarketDataService:
             return result
         except Exception as e:
             print(f"Error fetching leaders: {e}")
-            return MarketDataService._get_mock_leaders()
+            mock_data = MarketDataService._get_mock_leaders()
+            Cache.set("leaders", mock_data, ttl=30)
+            return mock_data
 
     @staticmethod
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(2))
@@ -195,12 +199,14 @@ class MarketDataService:
             return result
         except Exception as e:
             print(f"Error fetching sentiment: {e}")
-            return {
+            error_data = {
                 "up_count": 0, "down_count": 0, "flat_count": 0,
                 "limit_up_count": 0, "limit_down_count": 0, 
                 "activity": 0.0, "temperature": 0.0,
                 "error": str(e)
             }
+            Cache.set("sentiment", error_data, ttl=10) # Cache error for 10s
+            return error_data
 
     @staticmethod
     def get_macro_events() -> List[Dict[str, Any]]:

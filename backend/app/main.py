@@ -8,6 +8,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Global Timeout for blocking operations (e.g. akshare/requests)
+import socket
+socket.setdefaulttimeout(15)
+
 # CORS Configuration
 origins = [
     "http://localhost:3000",
@@ -30,8 +34,9 @@ app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"]
 app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"])
 app.include_router(watchlist.router, prefix="/api/v1/watchlist", tags=["Watchlist"])
 app.include_router(llm.router, prefix="/api/v1/llm", tags=["LLM Management"])
-from app.routers import market_sentiment
+from app.routers import market_sentiment, logic_chain
 app.include_router(market_sentiment.router, prefix="/api/v1/market", tags=["Market Sentiment"])
+app.include_router(logic_chain.router, prefix="/api/v1/logic", tags=["Logic Chain"])
 
 @app.get("/")
 def read_root():
