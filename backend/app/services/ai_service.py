@@ -152,7 +152,7 @@ class AIService:
                 )
                 
                 for chunk in stream:
-                    if chunk.choices[0].delta.content:
+                    if hasattr(chunk, 'choices') and chunk.choices and chunk.choices[0].delta.content:
                         c = chunk.choices[0].delta.content
                         yield json.dumps({"type": "chunk", "content": c}) + "\n"
                 

@@ -19,20 +19,20 @@ class UpdateTagsRequest(BaseModel):
 
 
 @router.get("/search")
-async def search_stock(q: str = Query(..., min_length=1, description="Search query (code or name)")):
+def search_stock(q: str = Query(..., min_length=1, description="Search query (code or name)")):
     """Fuzzy search stocks by code or name."""
     results = search_stocks(q, limit=10)
     return {"results": results}
 
 
 @router.get("")
-async def get_watchlist():
+def get_watchlist():
     watchlist = WatchlistService.get_watchlist()
     return {"data": watchlist}
 
 
 @router.post("")
-async def add_stock(request: AddStockRequest):
+def add_stock(request: AddStockRequest):
     code = request.code.strip().zfill(6)
     name = request.name
     if not name:
@@ -43,13 +43,13 @@ async def add_stock(request: AddStockRequest):
 
 
 @router.delete("/{code}")
-async def remove_stock(code: str):
+def remove_stock(code: str):
     result = WatchlistService.remove_stock(code)
     return result
 
 
 @router.put("/{code}/tags")
-async def update_tags(code: str, request: UpdateTagsRequest):
+def update_tags(code: str, request: UpdateTagsRequest):
     result = WatchlistService.update_tags(code, request.tags)
     return result
 
@@ -57,7 +57,7 @@ async def update_tags(code: str, request: UpdateTagsRequest):
 import asyncio
 
 @router.get("/quotes")
-async def get_watchlist_quotes():
+def get_watchlist_quotes():
     """Get real-time quotes and portfolio summary for all watchlist stocks."""
     watchlist = WatchlistService.get_watchlist()
     if not watchlist:
@@ -75,6 +75,6 @@ async def get_watchlist_quotes():
             }
         }
 
-    quotes = await asyncio.to_thread(WatchlistQuoteService.get_quotes, watchlist)
-    summary = await asyncio.to_thread(WatchlistQuoteService.get_portfolio_summary, quotes)
+    quotes = WatchlistQuoteService.get_quotes(watchlist)
+    summary = WatchlistQuoteService.get_portfolio_summary(quotes)
     return {"quotes": quotes, "summary": summary}

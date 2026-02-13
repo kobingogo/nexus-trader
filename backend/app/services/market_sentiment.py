@@ -1,4 +1,6 @@
 
+import json
+import os
 import pandas as pd
 import akshare as ak
 import logging
@@ -8,6 +10,8 @@ from typing import Dict, Any, List
 logger = logging.getLogger(__name__)
 
 from app.utils.cache import ttl_cache
+
+HISTORY_FILE = "/Users/bingo/nexus_trader/backend/data/sentiment_history.json"
 
 class MarketSentimentService:
     @staticmethod
@@ -45,8 +49,6 @@ class MarketSentimentService:
                 df_prev_zt = ak.stock_zt_pool_previous_em(date=date_str)
                 if not df_prev_zt.empty and '涨跌幅' in df_prev_zt.columns:
                     premium_rate = df_prev_zt['涨跌幅'].mean()
-                    # Success rate: ratio of stocks that are limit up (approx > 9.5%) today
-                    # Note: exact limit up varies (10% or 20%), simplified to >9.5%
                     success_count = len(df_prev_zt[df_prev_zt['涨跌幅'] > 9.5])
                     promotion_rate = (success_count / len(df_prev_zt) * 100)
                 else:
@@ -56,13 +58,37 @@ class MarketSentimentService:
                 premium_rate = 0
                 promotion_rate = 0
 
-            # Calculate Mood Index (Simple Algorithm)
-            # Base: 50
-            # + Limit Up Count / 10 (max 30)
-            # - Fried Rate * 0.5 (max 20)
-            # + Premium Rate * 2 (max 20)
+            # Calculate Mood Index
             mood = 50 + (zt_count / 5) - (fried_rate * 0.5) + (premium_rate * 2)
             mood = max(0, min(100, mood))
+            mood = float(round(mood, 1))
+
+            # --- Trend Analysis ---
+            prev_mood = 50.0
+            if os.path.exists(HISTORY_FILE):
+                try:
+                    with open(HISTORY_FILE, "r") as f:
+                        history = json.load(f)
+                        prev_mood = history.get("last_mood", 50.0)
+                except Exception:
+                    pass
+            
+            trend = "flat"
+            if mood > prev_mood + 0.1: # Increased sensitivity
+                trend = "up"
+            elif mood < prev_mood - 0.1:
+                trend = "down"
+                
+            # Persist for next comparison
+            try:
+                os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
+                with open(HISTORY_FILE, "w") as f:
+                    json.dump({
+                        "last_mood": mood, 
+                        "updated_at": datetime.now().isoformat()
+                    }, f)
+            except Exception as e:
+                logger.error(f"Failed to save sentiment history: {e}")
 
             return {
                 "timestamp": datetime.now().isoformat(),
@@ -72,7 +98,8 @@ class MarketSentimentService:
                     "fried_rate": float(round(fried_rate, 2)),
                     "premium_rate": float(round(premium_rate, 2)),
                     "promotion_rate": float(round(promotion_rate, 2)),
-                    "mood_index": float(round(mood, 1))
+                    "mood_index": mood,
+                    "trend": trend
                 }
             }
             
@@ -83,6 +110,7 @@ class MarketSentimentService:
                 "error": str(e),
                 "metrics": {
                     "limit_up_count": 0, "fried_board_count": 0, "fried_rate": 0,
-                    "premium_rate": 0, "promotion_rate": 0, "mood_index": 50
+                    "premium_rate": 0, "promotion_rate": 0, "mood_index": 50,
+                    "trend": "flat"
                 }
             }

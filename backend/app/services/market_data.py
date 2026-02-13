@@ -9,20 +9,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 import signal
 from contextlib import contextmanager
 
-# Timeout helper using signal (Unix only)
-@contextmanager
-def timeout(seconds):
-    def timeout_handler(signum, frame):
-        raise TimeoutError(f"Operation timed out after {seconds} seconds")
-    
-    # Set the signal handler and alarm
-    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(seconds)
-    try:
-        yield
-    finally:
-        signal.alarm(0)  # Disable alarm
-        signal.signal(signal.SIGALRM, old_handler)
+# Removed signal-based timeout as it is not thread-safe in FastAPI/Uvicorn workers
 
 # Simple in-memory cache with expiry
 class Cache:
@@ -62,8 +49,7 @@ class MarketDataService:
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_heatmap_data():
         # Source: Tonghuashun (Faster/Alternative)
-        with timeout(10):  # 10 second timeout
-            return ak.stock_board_industry_summary_ths()
+        return ak.stock_board_industry_summary_ths()
 
     _stock_codes_map = {}
 
@@ -89,8 +75,7 @@ class MarketDataService:
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_leaders_data():
         # Source: EastMoney Popularity Rank (Recent Popular)
-        with timeout(10):  # 10 second timeout
-            return ak.stock_hot_rank_em()
+        return ak.stock_hot_rank_em()
 
     @staticmethod
     def get_sector_heatmap() -> List[Dict[str, Any]]:
@@ -180,16 +165,14 @@ class MarketDataService:
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_market_activity():
         # Source: Legu Market Activity (Up/Down/LimitUp/LimitDown)
-        with timeout(10):  # 10 second timeout
-            return ak.stock_market_activity_legu()
+        return ak.stock_market_activity_legu()
 
     @staticmethod
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(1))
     def fetch_economic_calendar():
         # Source: Baidu Economic Calendar
         today = time.strftime("%Y%m%d")
-        with timeout(10):  # 10 second timeout
-            return ak.news_economic_baidu(date=today)
+        return ak.news_economic_baidu(date=today)
 
     @staticmethod
     def get_market_sentiment() -> Dict[str, Any]:

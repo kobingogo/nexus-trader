@@ -276,7 +276,7 @@ class LLMProviderManager:
 
     # ---- 连接测试 ----
 
-    async def test_connection(self, provider_id: str) -> dict:
+    def test_connection(self, provider_id: str) -> dict:
         """测试提供商连接"""
         provider = self.get_provider(provider_id)
         if not provider:

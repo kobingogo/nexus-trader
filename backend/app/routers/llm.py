@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 @router.get("/providers")
-async def list_providers():
+def list_providers():
     """获取所有已配置的提供商"""
     manager = LLMProviderManager()
     providers = manager.list_providers()
@@ -32,7 +32,7 @@ async def list_providers():
 
 
 @router.post("/providers")
-async def add_provider(request: AddProviderRequest):
+def add_provider(request: AddProviderRequest):
     """添加新提供商"""
     manager = LLMProviderManager()
     config = manager.add_provider(request)
@@ -44,7 +44,7 @@ async def add_provider(request: AddProviderRequest):
 
 
 @router.put("/providers/{provider_id}")
-async def update_provider(provider_id: str, request: UpdateProviderRequest):
+def update_provider(provider_id: str, request: UpdateProviderRequest):
     """更新提供商配置"""
     manager = LLMProviderManager()
     config = manager.update_provider(provider_id, request)
@@ -54,7 +54,7 @@ async def update_provider(provider_id: str, request: UpdateProviderRequest):
 
 
 @router.delete("/providers/{provider_id}")
-async def remove_provider(provider_id: str):
+def remove_provider(provider_id: str):
     """删除提供商"""
     manager = LLMProviderManager()
     success = manager.remove_provider(provider_id)
@@ -68,15 +68,15 @@ async def remove_provider(provider_id: str):
 
 
 @router.post("/providers/{provider_id}/test")
-async def test_provider(provider_id: str):
+def test_provider(provider_id: str):
     """测试提供商连接"""
     manager = LLMProviderManager()
-    result = await manager.test_connection(provider_id)
+    result = manager.test_connection(provider_id)
     return result
 
 
 @router.get("/active")
-async def get_active_model():
+def get_active_model():
     """获取当前激活的模型"""
     manager = LLMProviderManager()
     active = manager.get_active_model()
@@ -91,7 +91,7 @@ async def get_active_model():
 
 
 @router.put("/active")
-async def set_active_model(request: SetActiveModelRequest):
+def set_active_model(request: SetActiveModelRequest):
     """切换激活模型"""
     manager = LLMProviderManager()
     try:
