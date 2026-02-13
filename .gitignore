@@ -160,3 +160,4 @@ backend/app/watchlist.json
 # backend/app/llm_config.json
 backend/app/stock_codes.csv
 data/
+# Nexus Trader Consolidated .gitignore
