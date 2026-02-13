@@ -31,33 +31,39 @@ NEXUS Trader 不是另一个通达信，也不是另一个同花顺。
 ## 🔮 Key Features (杀手级功能)
 
 ### 1. 🌡️ Market Sentiment Thermometer (市场情绪温度计)
+
 不仅仅看指数涨跌，更看**赚钱效应**。
-*   **炸板率监控:** 现在的板硬不硬？
-*   **连板晋级率:** 市场高度在哪里？
-*   **昨日涨停溢价:** 昨天打板的人今天赚钱了吗？
+
+- **炸板率监控:** 现在的板硬不硬？
+- **连板晋级率:** 市场高度在哪里？
+- **昨日涨停溢价:** 昨天打板的人今天赚钱了吗？
 
 ### 2. ⚡ Logic Chain Reaction (逻辑链秒级传导)
+
 新闻 -> 板块 -> 龙头。
-*   **News:** "某地发布低空经济行动计划"
-*   **NEXUS:** "利好！关联板块：低空经济。龙头：万丰奥威。中军：中信海直。" -> **Auto-Alert**
+
+- **News:** "某地发布低空经济行动计划"
+- **NEXUS:** "利好！关联板块：低空经济。龙头：万丰奥威。中军：中信海直。" -> **Auto-Alert**
 
 ### 3. 🧠 Smart Money X-Ray (聪明钱透视)
-*   **游资画像:** 识别“一日游”恶庄 vs “锁仓”善庄。
-*   **北向背离:** 指数跌但外资疯狂买入？底背离信号触发。
+
+- **游资画像:** 识别“一日游”恶庄 vs “锁仓”善庄。
+- **北向背离:** 指数跌但外资疯狂买入？底背离信号触发。
 
 ### 4. 🤖 AI Agent Co-pilot (你的私人交易员)
-*   **自然语言交互:** "帮我复盘一下今天为什么亏钱？" -> NEXUS 生成深度复盘报告。
-*   **风控宪兵:** "Bingo，你今天已经连续亏损 2 笔，情绪指标过热。系统将锁定交易权限 30 分钟。去喝杯咖啡。"
+
+- **自然语言交互:** "帮我复盘一下今天为什么亏钱？" -> NEXUS 生成深度复盘报告。
+- **风控宪兵:** "Bingo，你今天已经连续亏损 2 笔，情绪指标过热。系统将锁定交易权限 30 分钟。去喝杯咖啡。"
 
 ---
 
 ## 🛠️ Tech Stack (技术栈)
 
-*   **Core:** Python 3.10+, FastAPI (High Performance Async I/O)
-*   **Data:** AkShare (Open Source Financial Data), Redis (Real-time Cache)
-*   **AI:** OpenAI GPT-4o / DeepSeek-R1 (Reasoning Core), LangChain (Agent Framework)
-*   **Frontend:** React / Vue 3 + ECharts (Visualization)
-*   **Infra:** Docker, PostgreSQL
+- **Core:** Python 3.10+, FastAPI (High Performance Async I/O)
+- **Data:** AkShare (Open Source Financial Data), Redis (Real-time Cache)
+- **AI:** OpenAI GPT-4o / DeepSeek-R1 (Reasoning Core), LangChain (Agent Framework)
+- **Frontend:** React / Vue 3 + ECharts (Visualization)
+- **Infra:** Docker, PostgreSQL
 
 ---
 
@@ -67,11 +73,9 @@ NEXUS Trader 不是另一个通达信，也不是另一个同花顺。
 # Clone the repository
 git clone https://github.com/your-repo/nexus-trader.git
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Wake up NEXUS
-python nexus_core.py
+# Start the application (Backend + Frontend)
+chmod +x start.sh
+./start.sh
 ```
 
 ---
@@ -85,4 +89,4 @@ A 股有风险，入市需谨慎。即便是 NEXUS，也无法改变你亏钱的
 
 ---
 
-*Built with 💻 and ☕ by Bingo & NEXUS.*
+_Built with 💻 and ☕ by Bingo & NEXUS._
