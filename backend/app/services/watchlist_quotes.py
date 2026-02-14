@@ -4,7 +4,7 @@ import re
 import requests
 from typing import List, Dict, Any
 from tenacity import retry, stop_after_attempt, wait_fixed
-from app.services.market_data import Cache
+from app.utils.cache import SimpleCache as Cache
 
 # Session with no system proxy for direct connections
 _session = requests.Session()

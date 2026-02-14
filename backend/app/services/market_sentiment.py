@@ -1,17 +1,16 @@
 
-import json
-import os
+import logging
 import pandas as pd
 import akshare as ak
-import logging
 from datetime import datetime
 from typing import Dict, Any, List
-
-logger = logging.getLogger(__name__)
+from sqlmodel import Session, select, desc
 
 from app.utils.cache import ttl_cache
+from app.db.database import engine
+from app.models.sentiment import SentimentRecord
 
-HISTORY_FILE = "/Users/bingo/nexus_trader/backend/data/sentiment_history.json"
+logger = logging.getLogger(__name__)
 
 class MarketSentimentService:
     @staticmethod
@@ -21,6 +20,7 @@ class MarketSentimentService:
         Fetch and calculate market sentiment metrics:
         1. Limit Up Count & Fried Board Count -> Fried Board Rate
         2. Yesterday Limit Up Performance -> Premium Rate
+        3. Persist to DB and calculate trend
         """
         try:
             date_str = datetime.now().strftime("%Y%m%d")
@@ -63,32 +63,49 @@ class MarketSentimentService:
             mood = max(0, min(100, mood))
             mood = float(round(mood, 1))
 
-            # --- Trend Analysis ---
-            prev_mood = 50.0
-            if os.path.exists(HISTORY_FILE):
-                try:
-                    with open(HISTORY_FILE, "r") as f:
-                        history = json.load(f)
-                        prev_mood = history.get("last_mood", 50.0)
-                except Exception:
-                    pass
-            
+            # --- Persistence & Trend Analysis ---
             trend = "flat"
-            if mood > prev_mood + 0.1: # Increased sensitivity
-                trend = "up"
-            elif mood < prev_mood - 0.1:
-                trend = "down"
-                
-            # Persist for next comparison
             try:
-                os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
-                with open(HISTORY_FILE, "w") as f:
-                    json.dump({
-                        "last_mood": mood, 
-                        "updated_at": datetime.now().isoformat()
-                    }, f)
+                with Session(engine) as session:
+                    # 1. Get previous record
+                    prev_record = session.exec(
+                        select(SentimentRecord).order_by(desc(SentimentRecord.timestamp)).limit(1)
+                    ).first()
+                    
+                    if prev_record:
+                        if mood > prev_record.mood_index + 0.5:
+                            trend = "up"
+                        elif mood < prev_record.mood_index - 0.5:
+                            trend = "down"
+                    
+                    # 2. Save current record
+                    # Only save if changed significantly? 
+                    # For MVP, let's save every time called (but capped by cache 60s)
+                    # To avoid spamming DB, we could check if last record was very recent.
+                    
+                    should_save = True
+                    if prev_record:
+                        # If less than 60s since last save, skip saving to DB but use calculated trend
+                        time_diff = (datetime.utcnow() - prev_record.timestamp).total_seconds()
+                        if time_diff < 50: 
+                            should_save = False
+                    
+                    if should_save:
+                        record = SentimentRecord(
+                            mood_index=mood,
+                            up_count=0, # These are from different source (legu), currently 0 here as this service calculates from pools
+                            down_count=0,
+                            limit_up_count=zt_count,
+                            limit_down_count=0,
+                            fried_rate=fried_rate,
+                            temperature=mood, # Mood as temp
+                            trend=trend
+                        )
+                        session.add(record)
+                        session.commit()
+                        
             except Exception as e:
-                logger.error(f"Failed to save sentiment history: {e}")
+                logger.error(f"DB Error in market sentiment: {e}")
 
             return {
                 "timestamp": datetime.now().isoformat(),

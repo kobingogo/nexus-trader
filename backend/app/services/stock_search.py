@@ -6,7 +6,7 @@ import re
 import time
 import requests
 from typing import List, Dict, Any, Optional
-from app.services.market_data import Cache
+from app.utils.cache import SimpleCache as Cache
 
 # Direct session (bypass macOS system proxy)
 _session = requests.Session()

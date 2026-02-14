@@ -49,3 +49,21 @@ def ttl_cache(ttl: int = 60):
         
         return wrapper
     return decorator
+
+class SimpleCache:
+    """
+    Simple in-memory cache with expiry.
+    """
+    _data = {}
+    _expiry = {}
+
+    @classmethod
+    def get(cls, key: str) -> Any:
+        if key in cls._data and time.time() < cls._expiry.get(key, 0):
+            return cls._data[key]
+        return None
+
+    @classmethod
+    def set(cls, key: str, value: Any, ttl: int = 60):
+        cls._data[key] = value
+        cls._expiry[key] = time.time() + ttl

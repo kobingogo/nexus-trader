@@ -1,11 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import market, ai, anomaly, review, watchlist, llm
+from contextlib import asynccontextmanager
+from app.db.database import create_db_and_tables
+from app.models.sentiment import SentimentRecord
+from app.models.anomaly import AnomalyRecord
+from app.routers import market, ai, anomaly, review, watchlist, llm, market_sentiment, logic_chain
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
 
 app = FastAPI(
     title="NEXUS Trader API",
     description="Backend API for NEXUS Trader (A-Share Edition)",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Global Timeout for blocking operations (e.g. akshare/requests)
@@ -31,10 +41,8 @@ app.include_router(market.router, prefix="/api/v1/market", tags=["Market Data"])
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI Services"])
 app.include_router(anomaly.router, prefix="/api/v1/anomaly", tags=["Anomaly Detection"])
 app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"])
-app.include_router(review.router, prefix="/api/v1/review", tags=["Daily Review"])
 app.include_router(watchlist.router, prefix="/api/v1/watchlist", tags=["Watchlist"])
 app.include_router(llm.router, prefix="/api/v1/llm", tags=["LLM Management"])
-from app.routers import market_sentiment, logic_chain
 app.include_router(market_sentiment.router, prefix="/api/v1/market", tags=["Market Sentiment"])
 app.include_router(logic_chain.router, prefix="/api/v1/logic", tags=["Logic Chain"])
 
