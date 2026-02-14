@@ -89,3 +89,10 @@ export const aiApi = {
     return response.data;
   },
 };
+
+export const agentApi = {
+  getSignals: async (limit: number = 20) => {
+    const response = await api.get('/agent/signals', { params: { limit } });
+    return response.data;
+  },
+};

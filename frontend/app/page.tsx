@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SectorHeatmap } from "@/components/SectorHeatmap";
 import { LeaderList } from "@/components/LeaderList";
+import { SignalFeed } from "@/components/SignalFeed";
 import { MarketBreadth } from "@/components/MarketBreadth";
 import { LogicChain } from "@/components/LogicChain";
 import { SentimentRadar } from "@/components/SentimentRadar";
@@ -61,9 +62,12 @@ export default function Home() {
 
         {/* Row 1: Market Mood + Macro Events */}
         {/* Row 1: Market Breadth + Logic Chain (replace Macro) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <MarketBreadth />
           <LogicChain />
+          <div className="md:col-span-2 lg:col-span-1">
+             <SignalFeed />
+          </div>
         </div>
 
         {/* Added SentimentRadar below Market Mood/Macro Events, as MarketOverview is not present */}

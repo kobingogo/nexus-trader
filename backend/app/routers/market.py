@@ -21,7 +21,9 @@ async def get_leader_stocks():
 
 @router.get("/sentiment")
 async def get_market_sentiment():
-    data = await asyncio.to_thread(MarketDataService.get_market_sentiment)
+    # Use the unified MarketSentimentService (Agent uses this too)
+    from app.services.market_sentiment import MarketSentimentService
+    data = await asyncio.to_thread(MarketSentimentService.get_market_sentiment)
     return {"data": data}
 
 @router.get("/macro")

@@ -8,3 +8,4 @@ tenacity>=8.2.0
 requests>=2.31.0
 google-auth>=2.0.0
 sqlmodel>=0.0.8
+aiohttp>=3.8.0

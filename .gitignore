@@ -156,8 +156,8 @@ cython_debug/
 
 # Project specific
 nexus.log
-backend/app/watchlist.json
+# backend/app/watchlist.json
 # backend/app/llm_config.json
-backend/app/stock_codes.csv
+# backend/app/stock_codes.csv
 data/
 # Nexus Trader Consolidated .gitignore

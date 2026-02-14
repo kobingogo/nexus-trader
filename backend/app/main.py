@@ -4,12 +4,16 @@ from contextlib import asynccontextmanager
 from app.db.database import create_db_and_tables
 from app.models.sentiment import SentimentRecord
 from app.models.anomaly import AnomalyRecord
-from app.routers import market, ai, anomaly, review, watchlist, llm, market_sentiment, logic_chain
+from app.models.signal import SignalRecord
+from app.services.agent_service import AgentService
+from app.routers import market, ai, anomaly, review, watchlist, llm, market_sentiment, logic_chain, agent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
+    AgentService.start()
     yield
+    AgentService.stop()
 
 app = FastAPI(
     title="NEXUS Trader API",
@@ -45,6 +49,7 @@ app.include_router(watchlist.router, prefix="/api/v1/watchlist", tags=["Watchlis
 app.include_router(llm.router, prefix="/api/v1/llm", tags=["LLM Management"])
 app.include_router(market_sentiment.router, prefix="/api/v1/market", tags=["Market Sentiment"])
 app.include_router(logic_chain.router, prefix="/api/v1/logic", tags=["Logic Chain"])
+app.include_router(agent.router, prefix="/api/v1/agent", tags=["Agent Signals"])
 
 @app.get("/")
 def read_root():
